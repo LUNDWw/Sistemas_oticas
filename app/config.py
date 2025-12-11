@@ -37,8 +37,10 @@ else:
 
 DB_PATH = os.path.join(BASE_DIR, 'data.db')
 
-# Variáveis de segurança - ler de .env ou usar fallback (development only)
-SECRET_KEY = os.getenv('SECRET_KEY', 'dev-key-change-in-production')
+# Variáveis de segurança - ler de .env
+SECRET_KEY = os.getenv('SECRET_KEY')
+if not SECRET_KEY:
+    raise ValueError("SECRET_KEY não configurada no .env")
 
 LOG_FILE = os.path.join(BASE_DIR, 'error.log')
 LOG_LEVEL = logging.ERROR

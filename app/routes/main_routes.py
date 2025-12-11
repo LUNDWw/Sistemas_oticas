@@ -35,33 +35,6 @@ def index():
     stores = [r[0] for r in db.execute("SELECT DISTINCT store FROM orders WHERE store IS NOT NULL AND deleted_at IS NULL").fetchall()]
     return render_template('index.html', orders=orders, q=q, status=status, stores=stores, filter_store=filter_store)
 
-@main_bp.route('/debug/static')
-def debug_static():
-    try:
-        files = []
-        if os.path.exists(current_app.static_folder):
-            for f in os.listdir(current_app.static_folder):
-                full_path = os.path.join(current_app.static_folder, f)
-                size = os.path.getsize(full_path) if os.path.isfile(full_path) else 'DIR'
-                files.append({'name': f, 'size': size})
-        
-        from app.config import BASE_DIR
-        # Proteger import de INTERNAL_DIR que só existe em modo frozen
-        try:
-            from app.config import INTERNAL_DIR
-        except ImportError:
-            INTERNAL_DIR = BASE_DIR
-        
-        return jsonify({
-            'static_folder': current_app.static_folder,
-            'exists': os.path.exists(current_app.static_folder),
-            'files': files,
-            'base_dir': BASE_DIR,
-            'internal_dir': INTERNAL_DIR
-        })
-    except Exception as e:
-        return jsonify({'error': str(e)})
-
 @main_bp.context_processor
 def inject_now():
     return {'now': int(time.time())}
