@@ -1,0 +1,191 @@
+<!doctype html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="utf-8">
+    <title>Dashboard - Gestão Ótica</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="{{ url_for('static', filename='bootstrap.min.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='custom.css') }}">
+    <link rel="icon" href="{{ url_for('static', filename='image/logo.ico') }}">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+
+<body>
+    {% include 'navbar.html' %}
+
+    <main class="container my-4">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+        <div class="toast-container">
+            {% for category, msg in messages %}
+            <div class="toast align-items-center text-white bg-{{ 'success' if category=='success' else 'danger' }} border-0" role="alert" aria-live="assertive" aria-atomic="true">
+                <div class="d-flex">
+                    <div class="toast-body">{{ msg }}</div>
+                    <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+        {% endwith %}
+
+        <!-- Statistics Cards -->
+        <div class="row mb-4">
+            <div class="col-md-4 mb-3">
+                <div class="stat-card primary">
+                    <h3>{{ total_orders }}</h3>
+                    <p>Total de Pedidos</p>
+                    <div class="icon">📦</div>
+                </div>
+            </div>
+            <div class="col-md-4 mb-3">
+                <div class="stat-card success">
+                    <h3>R$ {{ "%.2f"|format(total_revenue)|replace('.', ',') }}</h3>
+                    <p>Receita Total</p>
+                    <div class="icon">💰</div>
+                </div>
+            </div>
+            <div class="col-md-4 mb-3">
+                <div class="stat-card warning">
+                    <h3>{{ pending_orders }}</h3>
+                    <p>Pagamentos Pendentes</p>
+                    <div class="icon">⚠️</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Charts Row -->
+        <div class="row mb-4">
+            <!-- Sales Chart -->
+            <div class="col-md-8 mb-4">
+                <div class="card h-100 shadow-sm">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="mb-0">📊 Vendas nos Últimos 6 Meses</h5>
+                    </div>
+                    <div class="card-body">
+                        <canvas id="salesChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Top Labs -->
+            <div class="col-md-4 mb-4">
+                <div class="card h-100 shadow-sm">
+                    <div class="card-header bg-success text-white">
+                        <h5 class="mb-0">🏢 Top Laboratórios</h5>
+                    </div>
+                    <div class="card-body">
+                        <ul class="list-group list-group-flush">
+                            {% for lab in top_labs %}
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                {{ lab.lab }}
+                                <span class="badge bg-primary rounded-pill">{{ lab.count }}</span>
+                            </li>
+                            {% else %}
+                            <li class="list-group-item text-muted text-center py-3">Sem dados</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Orders -->
+        <div class="card shadow-sm">
+            <div class="card-header bg-info text-white d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">📋 Últimos Pedidos</h5>
+                <a href="{{ url_for('main.index') }}" class="btn btn-sm btn-light">Ver Todos</a>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th class="text-muted small fw-bold">OS</th>
+                                <th class="text-muted small fw-bold">Cliente</th>
+                                <th class="text-muted small fw-bold">Data</th>
+                                <th class="text-muted small fw-bold">Status</th>
+                                <th class="text-muted small fw-bold">Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for order in recent_orders %}
+                            <tr>
+                                <td><strong>#{{ order.os_number }}</strong></td>
+                                <td>{{ order.client_name }}</td>
+                                <td>{{ order.exam_date or '-' }}</td>
+                                <td>
+                                    <span class="badge bg-{{ 'success' if order.payment_status == 'Pago' else 'warning' }}">
+                                        {{ order.payment_status or 'Pendente' }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <a href="{{ url_for('order.details', order_id=order.id) }}" class="btn btn-sm btn-outline-primary">Ver</a>
+                                </td>
+                            </tr>
+                            {% else %}
+                            <tr>
+                                <td colspan="5" class="text-center py-3 text-muted">Nenhum pedido recente</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script src="{{ url_for('static', filename='bootstrap.bundle.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='app.js') }}"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const chartLabels = {{ chart_labels|safe }};
+            const chartData = {{ chart_data|safe }};
+            
+            // Use AppUtils for safe data validation
+            if (AppUtils.validateChartData(chartLabels, chartData)) {
+                const ctx = document.getElementById('salesChart');
+                if (ctx) {
+                    new Chart(ctx, {
+                        type: 'line',
+                        data: {
+                            labels: chartLabels,
+                            datasets: [{
+                                label: 'Vendas (R$)',
+                                data: chartData,
+                                borderColor: '#4361ee',
+                                backgroundColor: 'rgba(67, 97, 238, 0.1)',
+                                tension: 0.4,
+                                fill: true,
+                                pointRadius: 5,
+                                pointBackgroundColor: '#4361ee',
+                                pointBorderColor: '#fff',
+                                pointBorderWidth: 2
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: true,
+                            plugins: {
+                                legend: { display: false }
+                            },
+                            scales: {
+                                y: { 
+                                    beginAtZero: true,
+                                    ticks: {
+                                        callback: function(value) {
+                                            return 'R$ ' + value.toLocaleString('pt-BR', {maximumFractionDigits: 2});
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    });
+                }
+            }
+        });
+    </script>
+</body>
+
+</html>

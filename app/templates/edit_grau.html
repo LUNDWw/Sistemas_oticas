@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="pt-BR">
+
+<head>
+  <meta charset="utf-8">
+  <title>Editar Grau - Ótica</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="{{ url_for('static', filename='bootstrap.min.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='custom.css') }}">
+  <link rel="icon" href="{{ url_for('static', filename='image/logo.ico') }}">
+</head>
+
+<body class="bg-light">
+  <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+    <div class="container-fluid">
+      <a class="navbar-brand" href="/">🕶️Ótica</a>
+    </div>
+  </nav>
+
+  <div class="container my-4">
+    <div class="card shadow-sm">
+      <div class="card-header bg-primary text-white">
+        <h5 class="mb-0">✏️ Editar Grau</h5>
+      </div>
+      <div class="card-body">
+        <form method="post" class="needs-validation" novalidate>
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          
+          <div class="row g-3 mb-3">
+            <div class="col-md-6">
+              <label for="lens_for" class="form-label">Tipo de Lente</label>
+              <input type="text" name="lens_for" id="lens_for" value="{{ grau.lens_for }}" class="form-control" placeholder="Ex: Monofocal" required>
+            </div>
+            <div class="col-md-6">
+              <label for="eye" class="form-label">Olho</label>
+              <select name="eye" id="eye" class="form-select" required>
+                <option value="">Selecione...</option>
+                <option value="OD" {% if grau.eye == 'OD' %}selected{% endif %}>OD (Direito)</option>
+                <option value="OE" {% if grau.eye == 'OE' %}selected{% endif %}>OE (Esquerdo)</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="row g-3 mb-3">
+            <div class="col-md-4">
+              <label for="esf" class="form-label">ESF (Esfera)</label>
+              <input type="number" step="0.25" name="esf" id="esf" value="{{ grau.esf }}" class="form-control" placeholder="0.00" required>
+            </div>
+            <div class="col-md-4">
+              <label for="cil" class="form-label">CIL (Cilindro)</label>
+              <input type="number" step="0.25" name="cil" id="cil" value="{{ grau.cil }}" class="form-control" placeholder="0.00">
+            </div>
+            <div class="col-md-4">
+              <label for="eixo" class="form-label">EIXO</label>
+              <input type="number" min="0" max="180" name="eixo" id="eixo" value="{{ grau.eixo }}" class="form-control" placeholder="0">
+            </div>
+          </div>
+
+          <div class="row g-3 mb-3">
+            <div class="col-md-4">
+              <label for="dnp" class="form-label">DNP (Distância Pupilar)</label>
+              <input type="number" step="0.5" min="0" name="dnp" id="dnp" value="{{ grau.dnp }}" class="form-control" placeholder="0.0">
+            </div>
+            <div class="col-md-4">
+              <label for="indice" class="form-label">Índice</label>
+              <input type="number" step="0.01" min="1" name="indice" id="indice" value="{{ grau.indice }}" class="form-control" placeholder="1.50">
+            </div>
+            <div class="col-md-4">
+              <label for="lens_type" class="form-label">Tipo de Lente</label>
+              <select name="lens_type" id="lens_type" class="form-select">
+                <option value="">Selecione...</option>
+                <option value="Esférica" {% if grau.lens_type == 'Esférica' %}selected{% endif %}>Esférica</option>
+                <option value="Cilíndrica" {% if grau.lens_type == 'Cilíndrica' %}selected{% endif %}>Cilíndrica</option>
+                <option value="Bifocal" {% if grau.lens_type == 'Bifocal' %}selected{% endif %}>Bifocal</option>
+                <option value="Progressiva" {% if grau.lens_type == 'Progressiva' %}selected{% endif %}>Progressiva</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="d-flex gap-2">
+            <button type="submit" class="btn btn-primary">💾 Salvar</button>
+            <a href="{{ url_for('order.edit_order', order_id=order_id) }}" class="btn btn-secondary">⬅️ Voltar</a>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+  <script src="{{ url_for('static', filename='bootstrap.bundle.min.js') }}"></script>
+</body>
+
+</html>

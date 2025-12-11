@@ -1,0 +1,163 @@
+<!doctype html>
+<html lang="pt-BR">
+
+<head>
+  <meta charset="utf-8">
+  <title>Gestão Ótica - Pedidos</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="{{ url_for('static', filename='bootstrap.min.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='custom.css') }}">
+  <link rel="icon" href="{{ url_for('static', filename='image/logo.ico') }}">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+
+<body>
+  {% include 'navbar.html' %}
+
+  <main class="container my-4">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+    <div class="toast-container">
+      {% for category, msg in messages %}
+      <div class="toast align-items-center text-white bg-{{ 'success' if category=='success' else 'danger' }} border-0"
+        role="alert" aria-live="assertive" aria-atomic="true">
+        <div class="d-flex">
+          <div class="toast-body">{{ msg }}</div>
+          <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"
+            aria-label="Close"></button>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+    {% endwith %}
+
+    <div class="card shadow-sm border-0">
+      <div class="card-body p-4">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+          <h4 class="card-title mb-0 text-primary fw-bold">
+            🕶️ Ordens de Serviço
+          </h4>
+          <span class="badge bg-light text-dark border">
+            {{ orders|length }} registros
+          </span>
+        </div>
+
+        <form method="get" class="mb-4">
+          <div class="row g-3 align-items-end">
+            <div class="col-md-4">
+              <label class="form-label text-muted small fw-bold mb-1">Pesquisar</label>
+              <div class="input-group">
+                <span class="input-group-text bg-white border-end-0 text-muted">🔍</span>
+                <input type="search" class="form-control border-start-0 ps-0" name="q"
+                  placeholder="OS, Cliente ou Telefone..." value="{{ q }}">
+              </div>
+            </div>
+            <div class="col-md-3">
+              <label class="form-label text-muted small fw-bold mb-1">Loja</label>
+              <div class="input-group">
+                <span class="input-group-text bg-white border-end-0 text-muted">🏢</span>
+                <select name="store" class="form-select border-start-0 ps-0">
+                  <option value="all">Todas as lojas</option>
+                  {% for store in stores %}
+                  <option value="{{ store }}" {{ 'selected' if filter_store==store else '' }}>{{ store }}</option>
+                  {% endfor %}
+                </select>
+              </div>
+            </div>
+            <div class="col-md-3">
+              <label class="form-label text-muted small fw-bold mb-1">Status</label>
+              <div class="input-group">
+                <span class="input-group-text bg-white border-end-0 text-muted">📊</span>
+                <select name="status" class="form-select border-start-0 ps-0">
+                  <option value="all">Todos status</option>
+                  <option value="Pendente" {{ 'selected' if status=='Pendente' else '' }}>Pendente</option>
+                  <option value="pago_dinheiro" {{ 'selected' if status=='pago_dinheiro' else '' }}>Pago - Dinheiro
+                  </option>
+                  <option value="pago_cartao" {{ 'selected' if status=='pago_cartao' else '' }}>Pago - Cartão</option>
+                </select>
+              </div>
+            </div>
+            <div class="col-md-2">
+              <button class="btn btn-primary w-100" type="submit">Filtrar</button>
+            </div>
+          </div>
+        </form>
+
+        <div class="table-responsive">
+          <table class="table align-middle" role="table" aria-label="Lista de pedidos">
+            <thead class="bg-light">
+              <tr>
+                <th class="text-muted small fw-bold border-0" scope="col"># OS</th>
+                <th class="text-muted small fw-bold border-0" scope="col">CLIENTE</th>
+                <th class="text-muted small fw-bold border-0" scope="col">TELEFONE</th>
+                <th class="text-muted small fw-bold border-0" scope="col">LOJA</th>
+                <th class="text-muted small fw-bold border-0" scope="col">STATUS</th>
+                <th class="text-end text-muted small fw-bold border-0" scope="col">AÇÕES</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for order in orders %}
+              <tr>
+                <td><a href="{{ url_for('order.details', order_id=order.id) }}" class="os-link">#{{ order.os_number
+                    }}</a></td>
+                <td>
+                  <div class="fw-bold text-dark">{{ order.client_name }}</div>
+                  {% if order.purchase_type %}
+                  <div class="small text-muted">{{ order.purchase_type }}</div>
+                  {% endif %}
+                </td>
+                <td class="text-muted">{{ order.phone }}</td>
+                <td><span class="badge bg-light text-dark border">{{ order.store }}</span></td>
+                <td>
+                  {% if order.payment_status == 'Pago' %}
+                  {% if 'Dinheiro' in order.payment_method %}
+                  <span class="badge badge-pastel-success">Pago - Dinheiro</span>
+                  {% elif 'Cartão' in order.payment_method %}
+                  <span class="badge badge-pastel-success">Pago - Cartão</span>
+                  {% else %}
+                  <span class="badge badge-pastel-success">Pago</span>
+                  {% endif %}
+                  {% else %}
+                  <span class="badge badge-pastel-warning">Pendente</span>
+                  {% endif %}
+                </td>
+                <td class="text-end">
+                  <div class="btn-group" role="group">
+                    <a href="{{ url_for('order.details', order_id=order.id) }}"
+                      class="btn btn-sm btn-action-details mx-1" title="Ver Detalhes">
+                      📄
+                    </a>
+                    <a href="{{ url_for('order.edit_order', order_id=order.id) }}"
+                      class="btn btn-sm btn-action-edit mx-1" title="Editar">
+                      ✏️
+                    </a>
+                    <form action="{{ url_for('order.delete_order', order_id=order.id) }}" method="post" class="d-inline"
+                      onsubmit="return confirm('Tem certeza que deseja excluir este pedido?');">
+                      <button type="submit" class="btn btn-sm btn-action-delete mx-1" title="Excluir">
+                        🗑️
+                      </button>
+                    </form>
+                  </div>
+                </td>
+              </tr>
+              {% else %}
+              <tr>
+                <td colspan="6" class="text-center py-5">
+                  <div class="text-muted mb-3">Nenhum pedido encontrado</div>
+                  <a href="{{ url_for('order.new_order') }}" class="btn btn-primary">Criar Novo Pedido</a>
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script src="{{ url_for('static', filename='bootstrap.bundle.min.js') }}"></script>
+  <script src="{{ url_for('static', filename='app.js') }}"></script>
+</body>
+
+</html>

@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="pt-BR">
+
+<head>
+  <meta charset="utf-8">
+  <title>Erro 500 - Gestão Ótica</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="{{ url_for('static', filename='bootstrap.min.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='custom.css') }}">
+  <link rel="icon" href="{{ url_for('static', filename='image/logo.ico') }}">
+</head>
+
+<body>
+  {% include 'navbar.html' %}
+
+  <main class="container d-flex align-items-center justify-content-center" style="min-height: 80vh;">
+    <div class="text-center">
+      <div style="font-size: 6rem; margin-bottom: 1rem;">⚠️</div>
+      <h1 class="display-1 fw-bold text-danger">500</h1>
+      <h2 class="h4 mb-3">Erro Interno do Servidor</h2>
+      <p class="text-muted lead mb-4">
+        Desculpe, algo deu errado. Nossa equipe foi notificada sobre este problema.
+        <br>
+        <small>Verifique o arquivo <code>error.log</code> para mais detalhes.</small>
+      </p>
+      <div class="gap-2 d-flex flex-wrap justify-content-center">
+        <a href="{{ url_for('main.index') }}" class="btn btn-primary btn-lg">
+          🏠 Voltar ao Dashboard
+        </a>
+        <a href="javascript:history.back()" class="btn btn-outline-secondary btn-lg">
+          ⬅️ Página Anterior
+        </a>
+      </div>
+    </div>
+  </main>
+
+  <script src="{{ url_for('static', filename='bootstrap.bundle.min.js') }}"></script>
+  <script src="{{ url_for('static', filename='app.js') }}"></script>
+</body>
+
+</html>

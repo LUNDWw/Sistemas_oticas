@@ -1,0 +1,34 @@
+*.backup
+*.backup_*
+
+# Database files (contains sensitive client data)
+*.db
+*.sqlite
+*.sqlite3
+
+# Logs
+*.log
+error.log
+debug_paths.txt
+
+# Environment variables (keep .env.example in repo)
+.env
+.env.local
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Executables (development builds)
+*.exe.backup
+
+# Temporary files
+*.tmp
+*.bak

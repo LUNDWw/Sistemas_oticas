@@ -1,0 +1,466 @@
+<!doctype html>
+<html lang="pt-BR">
+
+<head>
+  <meta charset="utf-8">
+  <title>Detalhes da OS - Ótica</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="{{ url_for('static', filename='bootstrap.min.css') }}?v={{ now }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='custom.css') }}?v={{ now }}">
+  <link rel="icon" href="{{ url_for('static', filename='image/logo.ico') }}">
+</head>
+
+<body class="bg-light">
+  <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+    <div class="container-fluid">
+      <a class="navbar-brand" href="/">🕶️Ótica</a>
+    </div>
+  </nav>
+
+  {% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+  <div class="container mt-3">
+    {% for category, msg in messages %}
+    <div class="alert alert-{{ 'success' if category=='success' else 'danger' }} alert-dismissible fade show"
+      role="alert">
+      {{ msg }}
+      <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fechar"></button>
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+  {% endwith %}
+
+  <main class="container my-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <h2 class="text-primary">📋 Detalhes da OS #{{ order.os_number }}</h2>
+      <div>
+        <button class="btn btn-secondary btn-sm me-2" onclick="window.print()">🖨️ Imprimir</button>
+        <div class="btn-group">
+          <button type="button" class="btn btn-light btn-sm dropdown-toggle" data-bs-toggle="dropdown"
+            aria-expanded="false">
+            💾 Baixar
+          </button>
+          <ul class="dropdown-menu dropdown-menu-end">
+            <li><a class="dropdown-item"
+                href="{{ url_for('order.download_order', order_id=order.id, format='json') }}">JSON</a>
+            </li>
+            <li><a class="dropdown-item"
+                href="{{ url_for('order.download_order', order_id=order.id, format='txt') }}">TXT</a>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="card shadow-sm mb-4">
+      <div class="card-header bg-primary text-white">
+        <h5 class="mb-0">👤 Informações do Cliente</h5>
+      </div>
+      <div class="card-body">
+        <div class="row">
+          <div class="col-md-6 mb-3">
+            <strong>Nome:</strong> {{ order.client_name }}
+          </div>
+          <div class="col-md-6 mb-3">
+            <strong>Telefone:</strong> {{ order.phone }}
+          </div>
+          <div class="col-md-6 mb-3">
+            <strong>CPF:</strong> {{ order.cpf or 'Não informado' }}
+          </div>
+          <div class="col-md-6 mb-3">
+            <strong>Endereço:</strong> {{ order.endereco or 'Não informado' }}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card shadow-sm mb-4">
+      <div class="card-header bg-success text-white">
+        <h5 class="mb-0">🛒 Informações da Compra</h5>
+      </div>
+      <div class="card-body">
+        <div class="row">
+          <div class="col-md-4 mb-3">
+            <strong>Tipo de Compra:</strong> {{ order.purchase_type or 'Não informado' }}
+          </div>
+          <div class="col-md-4 mb-3">
+            <strong>Loja:</strong> {{ order.store or 'Não informado' }}
+          </div>
+          <div class="col-md-4 mb-3">
+            <strong>Laboratório:</strong> {{ order.lab or 'Não informado' }}
+          </div>
+          <div class="col-md-4 mb-3">
+            <strong>Status de Pagamento:</strong>
+            {% if 'Pago' in (order.payment_status or '') %}
+            <span class="badge bg-success">{{ order.payment_status }}</span>
+            {% else %}
+            <span class="badge bg-warning">{{ order.payment_status or 'Pendente' }}</span>
+            {% endif %}
+          </div>
+          <div class="col-md-4 mb-3">
+            <strong>Método de Pagamento:</strong> {{ order.payment_method or 'Não informado' }}
+          </div>
+          <div class="col-md-4 mb-3">
+            <strong>Parcelas:</strong> {{ order.installments or '0' }}x
+          </div>
+          <div class="col-md-4 mb-3">
+            <strong>Valor Pago:</strong> R$ {{ "%.2f"|format(order.valor_pago or 0) }}
+          </div>
+          <div class="col-md-4 mb-3">
+            <strong>Entrada:</strong> R$ {{ "%.2f"|format(order.entrada or 0) }}
+          </div>
+          <div class="col-md-4 mb-3">
+            <strong>Valor na Retirada:</strong> R$ {{ "%.2f"|format(order.valor_retirada or 0) }}
+          </div>
+          <div class="col-md-6 mb-3">
+            <strong>Laboratório Pago:</strong>
+            {% if order.lab_paid %}
+            <span class="badge bg-success">✅ Sim</span>
+            {% else %}
+            <span class="badge bg-secondary">❌ Não</span>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card shadow-sm mb-4">
+      <div class="card-header bg-info text-white">
+        <h5 class="mb-0">📅 Datas</h5>
+      </div>
+      <div class="card-body">
+        <div class="row">
+          <div class="col-md-6 mb-3">
+            <strong>Data do Exame:</strong> {{ order.exam_date or 'Não informado' }}
+          </div>
+          <div class="col-md-6 mb-3">
+            <strong>Data de Entrega:</strong> {{ order.delivery_date or 'Não informado' }}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card shadow-sm mb-4">
+      <div class="card-header bg-warning text-dark">
+        <h5 class="mb-0">👨‍⚕️ Informações do Exame</h5>
+      </div>
+      <div class="card-body">
+        <div class="row">
+          <div class="col-md-6 mb-3">
+            <strong>Receita de Fora:</strong>
+            {% if order.receita_fora %}
+            <span class="badge bg-primary">✅ Sim</span>
+            {% else %}
+            <span class="badge bg-secondary">❌ Não</span>
+            {% endif %}
+          </div>
+          {% if order.receita_fora %}
+          <div class="col-md-6 mb-3">
+            <strong>Nome do Doutor (Fora):</strong> {{ order.nome_doutor_fora or 'Não informado' }}
+          </div>
+          {% endif %}
+          {% if order.nome_doutor_otica %}
+          <div class="col-md-6 mb-3">
+            <strong>Nome do Doutor (Ótica):</strong> {{ order.nome_doutor_otica }}
+          </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <div class="card shadow-sm mb-4">
+      <div class="card-header bg-dark text-white">
+        <h5 class="mb-0">👓 Graus</h5>
+      </div>
+      <div class="card-body">
+        {% if graus and graus|length > 0 %}
+        <div class="table-responsive">
+          <table class="table table-bordered table-hover">
+            <thead class="table-light">
+              <tr>
+                <th>Para</th>
+                <th>Olho</th>
+                <th>ESF</th>
+                <th>CIL</th>
+                <th>Eixo</th>
+                <th>DNP</th>
+                <th>Índice</th>
+                <th>Tipo de Lente</th>
+                <th>Adição</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for g in graus %}
+              <tr>
+                <td>{{ g.lens_for }}</td>
+                <td>{{ g.eye }}</td>
+                <td>{{ g.esf }}</td>
+                <td>{{ g.cil }}</td>
+                <td>{{ g.eixo }}</td>
+                <td>{{ g.dnp }}</td>
+                <td>{{ g.indice }}</td>
+                <td>{{ g.lens_type }}</td>
+                <td>{{ g.adicao }}</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+        {% else %}
+        <p class="text-muted mb-0">Nenhum grau cadastrado.</p>
+        {% endif %}
+      </div>
+    </div>
+
+    <div class="card shadow-sm mb-4">
+      <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+        <h5 class="mb-0">💰 Pagamentos Parciais</h5>
+        <button class="btn btn-light btn-sm" data-bs-toggle="modal" data-bs-target="#partialPaymentModal">
+          ➕ Adicionar Pagamento
+        </button>
+      </div>
+      <div class="card-body">
+        <div class="row mb-3">
+          <div class="col-md-4">
+            <div class="info-item">
+              <label>Valor Total da OS</label>
+              <div class="value fw-bold">R$ {{ "%.2f"|format(order.valor_pago or 0) }}</div>
+            </div>
+          </div>
+          <div class="col-md-4">
+            <div class="info-item">
+              <label>Total Pago</label>
+              <div class="value text-success fw-bold">R$ {{ "%.2f"|format(total_paid or 0) }}</div>
+            </div>
+          </div>
+          <div class="col-md-4">
+            <div class="info-item">
+              <label>A Receber</label>
+              <div
+                class="value {{ 'text-danger' if (order.valor_pago or 0) - (total_paid or 0) > 0 else 'text-success' }} fw-bold">
+                R$ {{ "%.2f"|format((order.valor_pago or 0) - (total_paid or 0)) }}
+              </div>
+            </div>
+          </div>
+        </div>
+
+
+
+        {% if partial_payments and partial_payments|length > 0 %}
+
+        <div class="table-responsive">
+
+          <table class="table table-sm align-middle">
+
+            <thead class="bg-light">
+
+              <tr>
+
+                <th class="text-muted small fw-bold border-0">DATA</th>
+
+                <th class="text-muted small fw-bold border-0">VALOR</th>
+
+                <th class="text-muted small fw-bold border-0">MÉTODO</th>
+
+                <th class="text-muted small fw-bold border-0">OBSERVAÇÕES</th>
+
+                <th class="text-muted small fw-bold border-0 text-end">AÇÕES</th>
+
+              </tr>
+
+            </thead>
+
+            <tbody>
+
+              {% for payment in partial_payments %}
+
+              <tr>
+
+                <td>{{ payment.payment_date }}</td>
+
+                <td class="text-success fw-bold">R$ {{ "%.2f"|format(payment.amount) }}</td>
+
+                <td>{{ payment.payment_method or '-' }}</td>
+
+                <td>{{ payment.notes or '-' }}</td>
+
+                <td class="text-end">
+
+                  <button class="btn btn-sm btn-outline-primary me-1"
+
+                    onclick="openEditPaymentModal('{{ payment.id }}', '{{ payment.amount }}', '{{ payment.payment_date }}', '{{ payment.payment_method }}', '{{ payment.notes }}')">
+
+                    ✏️
+
+                  </button>
+
+                  <button class="btn btn-sm btn-outline-danger"
+
+                    onclick="openDeletePaymentModal('{{ payment.id }}', '{{ payment.amount }}')">
+
+                    🗑️
+
+                  </button>
+
+                </td>
+
+              </tr>
+
+              {% endfor %}
+
+            </tbody>
+
+          </table>
+
+        </div>
+
+        {% else %}
+
+        <p class="text-muted mb-0">Nenhum pagamento parcial registrado.</p>
+
+        {% endif %}
+
+      </div>
+    </div>
+
+
+    <div class="mt-3">
+      <a href="{{ url_for('main.index') }}" class="btn btn-secondary">⬅️ Voltar</a>
+      <a href="{{ url_for('order.edit_order', order_id=order.id) }}" class="btn btn-primary">✏️ Editar</a>
+    </div>
+  </main>
+
+  <footer class="text-center text-muted py-2">Gestão de Ótica</footer>
+  <div class="modal fade" id="partialPaymentModal" tabindex="-1">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header bg-primary text-white">
+          <h5 class="modal-title">💰 Adicionar Pagamento Parcial</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+        </div>
+        <form method="post" action="{{ url_for('cashflow.add_partial_payment', order_id=order.id) }}">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <div class="modal-body">
+            <div class="mb-3">
+              <label class="form-label">Data do Pagamento</label>
+              <input type="date" name="payment_date" class="form-control" required value="{{ now_date }}">
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Valor</label>
+              <input type="number" step="0.01" name="amount" class="form-control" required>
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Método de Pagamento</label>
+              <select name="payment_method" class="form-select">
+                <option value="">Selecione...</option>
+                <option value="Dinheiro">Dinheiro</option>
+                <option value="Cartão">Cartão</option>
+                <option value="PIX">PIX</option>
+                <option value="Transferência">Transferência</option>
+              </select>
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Observações</label>
+              <textarea name="notes" class="form-control" rows="2"></textarea>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+            <button type="submit" class="btn btn-primary">Registrar Pagamento</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Edit Payment Modal -->
+  <div class="modal fade" id="editPaymentModal" tabindex="-1">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header bg-warning text-dark">
+          <h5 class="modal-title">✏️ Editar Pagamento</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <form id="editPaymentForm" method="post">
+          <input type="hidden" name="order_id" value="{{ order.id }}">
+          <div class="modal-body">
+            <div class="mb-3">
+              <label class="form-label">Data do Pagamento</label>
+              <input type="date" name="payment_date" id="edit_payment_date" class="form-control" required>
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Valor</label>
+              <input type="number" step="0.01" name="amount" id="edit_amount" class="form-control" required>
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Método de Pagamento</label>
+              <select name="payment_method" id="edit_payment_method" class="form-select">
+                <option value="">Selecione...</option>
+                <option value="Dinheiro">Dinheiro</option>
+                <option value="Cartão">Cartão</option>
+                <option value="PIX">PIX</option>
+                <option value="Transferência">Transferência</option>
+              </select>
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Observações</label>
+              <textarea name="notes" id="edit_notes" class="form-control" rows="2"></textarea>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+            <button type="submit" class="btn btn-warning">Salvar Alterações</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Delete Payment Modal -->
+  <div class="modal fade" id="deletePaymentModal" tabindex="-1">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header bg-danger text-white">
+          <h5 class="modal-title">🗑️ Excluir Pagamento</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+        </div>
+        <form id="deletePaymentForm" method="post">
+          <input type="hidden" name="order_id" value="{{ order.id }}">
+          <div class="modal-body">
+            <p>Tem certeza que deseja excluir este pagamento de <strong id="delete_amount_display"></strong>?</p>
+            <p class="text-danger small">Esta ação também removerá o registro do fluxo de caixa e atualizará o saldo
+              restante.</p>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+            <button type="submit" class="btn btn-danger">Excluir Pagamento</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function openEditPaymentModal(id, amount, date, method, notes) {
+      document.getElementById('editPaymentForm').action = `/cashflow/partial-payment/edit/${id}`;
+      document.getElementById('edit_amount').value = amount;
+      document.getElementById('edit_payment_date').value = date;
+      document.getElementById('edit_payment_method').value = method;
+      document.getElementById('edit_notes').value = notes === 'None' ? '' : notes;
+
+      new bootstrap.Modal(document.getElementById('editPaymentModal')).show();
+    }
+
+    function openDeletePaymentModal(id, amount) {
+      document.getElementById('deletePaymentForm').action = `/cashflow/partial-payment/delete/${id}`;
+      document.getElementById('delete_amount_display').textContent = `R$ ${parseFloat(amount).toFixed(2)}`;
+
+      new bootstrap.Modal(document.getElementById('deletePaymentModal')).show();
+    }
+  </script>
+
+  <script src="{{ url_for('static', filename='bootstrap.bundle.min.js') }}"></script>
+</body>
+
+</html>

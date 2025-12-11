@@ -1,0 +1,395 @@
+<!doctype html>
+<html lang="pt-BR">
+
+<head>
+  <meta charset="utf-8">
+  <title>Gestão Ótica - Movimento de Caixa</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="{{ url_for('static', filename='bootstrap.min.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='custom.css') }}">
+  <link rel="icon" href="{{ url_for('static', filename='image/logo.ico') }}">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+
+<body>
+  {% include 'navbar.html' %}
+
+  <main class="container my-4">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+    <div class="toast-container">
+      {% for category, msg in messages %}
+      <div class="toast align-items-center text-white bg-{{ 'success' if category=='success' else 'danger' }} border-0"
+        role="alert" aria-live="assertive" aria-atomic="true">
+        <div class="d-flex">
+          <div class="toast-body">{{ msg }}</div>
+          <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"
+            aria-label="Close"></button>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+    {% endwith %}
+
+    <!-- Balance Cards -->
+    <div class="row mb-4">
+      <div class="col-md-4">
+        <div class="stat-card primary">
+          <h3>R$ {{ "%.2f"|format(balance) }}</h3>
+          <p>Saldo Atual</p>
+          <div class="icon">💰</div>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="stat-card success">
+          <h3>R$ {{ "%.2f"|format(total_entries) }}</h3>
+          <p>Total Entradas</p>
+          <div class="icon">📈</div>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="stat-card danger">
+          <h3>R$ {{ "%.2f"|format(total_exits) }}</h3>
+          <p>Total Saídas</p>
+          <div class="icon">📉</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Monthly Summary -->
+    <div class="card shadow-sm border-0 mb-4">
+      <div class="card-body p-4">
+        <h5 class="card-title text-primary fw-bold mb-3">📊 Resumo do Mês</h5>
+        <div class="row">
+          <div class="col-md-4">
+            <div class="info-item">
+              <label>Entradas</label>
+              <div class="value text-success fw-bold">R$ {{ "%.2f"|format(monthly_summary.entries) }}</div>
+            </div>
+          </div>
+          <div class="col-md-4">
+            <div class="info-item">
+              <label>Saídas</label>
+              <div class="value text-danger fw-bold">R$ {{ "%.2f"|format(monthly_summary.exits) }}</div>
+            </div>
+          </div>
+          <div class="col-md-4">
+            <div class="info-item">
+              <label>Saldo do Mês</label>
+              <div class="value fw-bold {{ 'text-success' if monthly_summary.balance >= 0 else 'text-danger' }}">
+                R$ {{ "%.2f"|format(monthly_summary.balance) }}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Add Entry/Exit Buttons -->
+    <div class="mb-4">
+      <button class="btn btn-success me-2" data-bs-toggle="modal" data-bs-target="#entryModal">
+        ➕ Nova Entrada
+      </button>
+      <button class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#exitModal">
+        ➖ Nova Saída
+      </button>
+    </div>
+
+    <!-- Movements Table -->
+    <div class="card shadow-sm border-0">
+      <div class="card-body p-4">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+          <h4 class="card-title mb-0 text-primary fw-bold">
+            💸 Movimentações
+          </h4>
+          <span class="badge bg-light text-dark border">
+            {{ movements|length }} registros
+          </span>
+        </div>
+
+        <!-- Filters -->
+        <form method="get" class="mb-4">
+          <div class="row g-3 align-items-end">
+            <div class="col-md-3">
+              <label class="form-label text-muted small fw-bold mb-1">Tipo</label>
+              <div class="input-group">
+                <span class="input-group-text bg-white border-end-0 text-muted">📊</span>
+                <select name="type" class="form-select border-start-0 ps-0">
+                  <option value="all">Todos</option>
+                  <option value="entrada" {{ 'selected' if filter_type=='entrada' else '' }}>Entradas</option>
+                  <option value="saida" {{ 'selected' if filter_type=='saida' else '' }}>Saídas</option>
+                </select>
+              </div>
+            </div>
+            <div class="col-md-3">
+              <label class="form-label text-muted small fw-bold mb-1">Data Início</label>
+              <input type="date" name="start_date" class="form-control" value="{{ start_date or '' }}">
+            </div>
+            <div class="col-md-3">
+              <label class="form-label text-muted small fw-bold mb-1">Data Fim</label>
+              <input type="date" name="end_date" class="form-control" value="{{ end_date or '' }}">
+            </div>
+            <div class="col-md-3">
+              <button class="btn btn-primary w-100" type="submit">Filtrar</button>
+            </div>
+          </div>
+        </form>
+
+        <div class="table-responsive">
+          <table class="table align-middle">
+            <thead class="bg-light">
+              <tr>
+                <th class="text-muted small fw-bold border-0">DATA</th>
+                <th class="text-muted small fw-bold border-0">TIPO</th>
+                <th class="text-muted small fw-bold border-0">CATEGORIA</th>
+                <th class="text-muted small fw-bold border-0">DESCRIÇÃO</th>
+                <th class="text-muted small fw-bold border-0">MÉTODO</th>
+                <th class="text-end text-muted small fw-bold border-0">VALOR</th>
+                <th class="text-end text-muted small fw-bold border-0">AÇÕES</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for movement in movements %}
+              <tr>
+                <td>{{ movement.date }}</td>
+                <td>
+                  {% if movement.type == 'entrada' %}
+                  <span class="badge badge-pastel-success">Entrada</span>
+                  {% else %}
+                  <span class="badge badge-pastel-warning">Saída</span>
+                  {% endif %}
+                </td>
+                <td>{{ movement.category or '-' }}</td>
+                <td>{{ movement.description or '-' }}</td>
+                <td>{{ movement.payment_method or '-' }}</td>
+                <td class="text-end fw-bold {{ 'text-success' if movement.type == 'entrada' else 'text-danger' }}">
+                  {{ '+' if movement.type == 'entrada' else '-' }} R$ {{ "%.2f"|format(movement.amount) }}
+                </td>
+                <td class="text-end">
+                  <div class="btn-group" role="group">
+                    <button class="btn btn-sm btn-action-edit mx-1" data-bs-toggle="modal"
+                      data-bs-target="#editModal{{ movement.id }}" title="Editar">
+                      ✏️
+                    </button>
+                    <form action="{{ url_for('cashflow.delete_movement', movement_id=movement.id) }}" method="post"
+                      class="d-inline" onsubmit="return confirm('Tem certeza que deseja excluir esta movimentação?');">
+                      <button type="submit" class="btn btn-sm btn-action-delete mx-1" title="Excluir">
+                        🗑️
+                      </button>
+                    </form>
+                  </div>
+                </td>
+              </tr>
+              {% else %}
+              <tr>
+                <td colspan="7" class="text-center py-5">
+                  <div class="text-muted mb-3">Nenhuma movimentação encontrada</div>
+                  <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#entryModal">
+                    Adicionar Movimentação
+                  </button>
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Entry Modal -->
+  <div class="modal fade" id="entryModal" tabindex="-1">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header bg-success text-white">
+          <h5 class="modal-title">➕ Nova Entrada</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+        </div>
+        <form method="post" action="{{ url_for('cashflow.add_entry') }}">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <div class="modal-body">
+            <div class="mb-3">
+              <label class="form-label">Data</label>
+              <input type="date" name="date" class="form-control" required>
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Categoria</label>
+              <select name="category" class="form-select">
+                <option value="">Selecione...</option>
+                <option value="Venda">Venda</option>
+                <option value="Pagamento Parcial">Pagamento Parcial</option>
+                <option value="Outros">Outros</option>
+              </select>
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Descrição</label>
+              <input type="text" name="description" class="form-control" required>
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Valor</label>
+              <input type="number" step="0.01" name="amount" class="form-control" required>
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Método de Pagamento</label>
+              <select name="payment_method" class="form-select">
+                <option value="">Selecione...</option>
+                <option value="Dinheiro">Dinheiro</option>
+                <option value="Cartão">Cartão</option>
+                <option value="PIX">PIX</option>
+                <option value="Transferência">Transferência</option>
+              </select>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+            <button type="submit" class="btn btn-success">Registrar Entrada</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Exit Modal -->
+  <div class="modal fade" id="exitModal" tabindex="-1">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header bg-danger text-white">
+          <h5 class="modal-title">➖ Nova Saída</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+        </div>
+        <form method="post" action="{{ url_for('cashflow.add_exit') }}">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <div class="modal-body">
+            <div class="mb-3">
+              <label class="form-label">Data</label>
+              <input type="date" name="date" class="form-control" required>
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Categoria</label>
+              <select name="category" class="form-select">
+                <option value="">Selecione...</option>
+                <option value="Fornecedor">Fornecedor</option>
+                <option value="Despesas">Despesas</option>
+                <option value="Salários">Salários</option>
+                <option value="Outros">Outros</option>
+              </select>
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Descrição</label>
+              <input type="text" name="description" class="form-control" required>
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Valor</label>
+              <input type="number" step="0.01" name="amount" class="form-control" required>
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Método de Pagamento</label>
+              <select name="payment_method" class="form-select">
+                <option value="">Selecione...</option>
+                <option value="Dinheiro">Dinheiro</option>
+                <option value="Cartão">Cartão</option>
+                <option value="PIX">PIX</option>
+                <option value="Transferência">Transferência</option>
+              </select>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+            <button type="submit" class="btn btn-danger">Registrar Saída</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Edit Modals (one for each movement) -->
+  {% for movement in movements %}
+  <div class="modal fade" id="editModal{{ movement.id }}" tabindex="-1">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header bg-primary text-white">
+          <h5 class="modal-title">✏️ Editar Movimentação</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+        </div>
+        <form method="post" action="{{ url_for('cashflow.edit_movement', movement_id=movement.id) }}">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <div class="modal-body">
+            <div class="mb-3">
+              <label class="form-label">Data</label>
+              <input type="date" name="date" class="form-control" value="{{ movement.date }}" required>
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Categoria</label>
+              <select name="category" class="form-select">
+                <option value="">Selecione...</option>
+                {% if movement.type == 'entrada' %}
+                <option value="Venda" {{ 'selected' if movement.category=='Venda' else '' }}>Venda</option>
+                <option value="Pagamento Parcial" {{ 'selected' if movement.category=='Pagamento Parcial' else '' }}>
+                  Pagamento Parcial</option>
+                <option value="Outros" {{ 'selected' if movement.category=='Outros' else '' }}>Outros</option>
+                {% else %}
+                <option value="Fornecedor" {{ 'selected' if movement.category=='Fornecedor' else '' }}>Fornecedor
+                </option>
+                <option value="Despesas" {{ 'selected' if movement.category=='Despesas' else '' }}>Despesas</option>
+                <option value="Salários" {{ 'selected' if movement.category=='Salários' else '' }}>Salários</option>
+                <option value="Outros" {{ 'selected' if movement.category=='Outros' else '' }}>Outros</option>
+                {% endif %}
+              </select>
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Descrição</label>
+              <input type="text" name="description" class="form-control" value="{{ movement.description }}" required>
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Valor</label>
+              <input type="number" step="0.01" name="amount" class="form-control" value="{{ movement.amount }}"
+                required>
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Método de Pagamento</label>
+              <select name="payment_method" class="form-select">
+                <option value="">Selecione...</option>
+                <option value="Dinheiro" {{ 'selected' if movement.payment_method=='Dinheiro' else '' }}>Dinheiro
+                </option>
+                <option value="Cartão" {{ 'selected' if movement.payment_method=='Cartão' else '' }}>Cartão</option>
+                <option value="PIX" {{ 'selected' if movement.payment_method=='PIX' else '' }}>PIX</option>
+                <option value="Transferência" {{ 'selected' if movement.payment_method=='Transferência' else '' }}>
+                  Transferência</option>
+              </select>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+            <button type="submit" class="btn btn-primary">Salvar Alterações</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+
+  <script src="{{ url_for('static', filename='bootstrap.bundle.min.js') }}"></script>
+  <script src="{{ url_for('static', filename='app.js') }}"></script>
+  <script>
+    // Auto-show toasts
+    document.addEventListener('DOMContentLoaded', function () {
+      var toastElList = [].slice.call(document.querySelectorAll('.toast'));
+      var toastList = toastElList.map(function (toastEl) {
+        var toast = new bootstrap.Toast(toastEl, { autohide: true, delay: 3000 });
+        toast.show();
+        return toast;
+      });
+
+      // Set default date to today
+      var today = new Date().toISOString().split('T')[0];
+      document.querySelectorAll('input[type="date"]').forEach(function (input) {
+        if (!input.value) {
+          input.value = today;
+        }
+      });
+    });
+  </script>
+</body>
+
+</html>

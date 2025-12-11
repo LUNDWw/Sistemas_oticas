@@ -1,0 +1,6 @@
+Flask==3.0.0
+python-dotenv
+openpyxl
+reportlab
+Flask-Login==0.6.3
+bcrypt==4.1.2
