@@ -35,16 +35,22 @@ else:
     TEMPLATE_DIR = os.path.join(BASE_DIR, 'app', 'templates')
     STATIC_DIR = os.path.join(BASE_DIR, 'app', 'static')
 
-DB_PATH = os.path.join(BASE_DIR, 'data.db')
+if getattr(sys, 'frozen', False):
+    appdata = os.getenv('APPDATA', os.path.expanduser('~'))
+    app_dir_safe = os.path.join(appdata, 'GestaoOtica')
+    os.makedirs(app_dir_safe, exist_ok=True)
+    DB_PATH = os.path.join(app_dir_safe, 'data.db')
+    LOG_FILE = os.path.join(app_dir_safe, 'error.log')
+else:
+    DB_PATH = os.path.join(BASE_DIR, 'data.db')
+    LOG_FILE = os.path.join(BASE_DIR, 'error.log')
 
 # Variáveis de segurança - ler de .env
 SECRET_KEY = os.getenv('SECRET_KEY')
 if not SECRET_KEY:
     raise ValueError("SECRET_KEY não configurada no .env")
-
-LOG_FILE = os.path.join(BASE_DIR, 'error.log')
 LOG_LEVEL = logging.ERROR
-HOST = '127.0.0.1'
+HOST = '0.0.0.0'
 PORT = 5000
 DEBUG_MODE = not getattr(sys, 'frozen', False)
 

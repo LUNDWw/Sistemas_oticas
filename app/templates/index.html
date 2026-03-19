@@ -6,7 +6,7 @@
   <title>Gestão Ótica - Pedidos</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link rel="stylesheet" href="{{ url_for('static', filename='bootstrap.min.css') }}">
-  <link rel="stylesheet" href="{{ url_for('static', filename='custom.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='custom.css') }}?v=2">
   <link rel="icon" href="{{ url_for('static', filename='image/logo.ico') }}">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
@@ -32,13 +32,13 @@
     {% endif %}
     {% endwith %}
 
-    <div class="card shadow-sm border-0">
+    <div class="card p-2">
       <div class="card-body p-4">
         <div class="d-flex justify-content-between align-items-center mb-4">
-          <h4 class="card-title mb-0 text-primary fw-bold">
-            🕶️ Ordens de Serviço
+          <h4 class="card-title mb-0 text-primary fw-bold" style="letter-spacing: -0.5px;">
+            <i class="fa-solid fa-glasses me-2"></i>Ordens de Serviço
           </h4>
-          <span class="badge bg-light text-dark border">
+          <span class="badge bg-light text-dark shadow-sm border rounded-pill px-3 py-2 fw-semibold">
             {{ orders|length }} registros
           </span>
         </div>
@@ -48,7 +48,7 @@
             <div class="col-md-4">
               <label class="form-label text-muted small fw-bold mb-1">Pesquisar</label>
               <div class="input-group">
-                <span class="input-group-text bg-white border-end-0 text-muted">🔍</span>
+                <span class="input-group-text bg-white border-end-0 text-muted"><i class="fa-solid fa-search"></i></span>
                 <input type="search" class="form-control border-start-0 ps-0" name="q"
                   placeholder="OS, Cliente ou Telefone..." value="{{ q }}">
               </div>
@@ -56,7 +56,7 @@
             <div class="col-md-3">
               <label class="form-label text-muted small fw-bold mb-1">Loja</label>
               <div class="input-group">
-                <span class="input-group-text bg-white border-end-0 text-muted">🏢</span>
+                <span class="input-group-text bg-white border-end-0 text-muted"><i class="fa-solid fa-building"></i></span>
                 <select name="store" class="form-select border-start-0 ps-0">
                   <option value="all">Todas as lojas</option>
                   {% for store in stores %}
@@ -68,7 +68,7 @@
             <div class="col-md-3">
               <label class="form-label text-muted small fw-bold mb-1">Status</label>
               <div class="input-group">
-                <span class="input-group-text bg-white border-end-0 text-muted">📊</span>
+                <span class="input-group-text bg-white border-end-0 text-muted"><i class="fa-solid fa-chart-bar"></i></span>
                 <select name="status" class="form-select border-start-0 ps-0">
                   <option value="all">Todos status</option>
                   <option value="Pendente" {{ 'selected' if status=='Pendente' else '' }}>Pendente</option>
@@ -99,17 +99,17 @@
             <tbody>
               {% for order in orders %}
               <tr>
-                <td><a href="{{ url_for('order.details', order_id=order.id) }}" class="os-link">#{{ order.os_number
+                <td data-label="# OS"><a href="{{ url_for('order.details', order_id=order.id) }}" class="os-link">#{{ order.os_number
                     }}</a></td>
-                <td>
+                <td data-label="CLIENTE">
                   <div class="fw-bold text-dark">{{ order.client_name }}</div>
                   {% if order.purchase_type %}
                   <div class="small text-muted">{{ order.purchase_type }}</div>
                   {% endif %}
                 </td>
-                <td class="text-muted">{{ order.phone }}</td>
-                <td><span class="badge bg-light text-dark border">{{ order.store }}</span></td>
-                <td>
+                <td data-label="TELEFONE" class="text-muted">{{ order.phone }}</td>
+                <td data-label="LOJA"><span class="badge bg-light text-dark border">{{ order.store }}</span></td>
+                <td data-label="STATUS">
                   {% if order.payment_status == 'Pago' %}
                   {% if 'Dinheiro' in order.payment_method %}
                   <span class="badge badge-pastel-success">Pago - Dinheiro</span>
@@ -122,20 +122,20 @@
                   <span class="badge badge-pastel-warning">Pendente</span>
                   {% endif %}
                 </td>
-                <td class="text-end">
+                <td data-label="AÇÕES" class="text-end">
                   <div class="btn-group" role="group">
                     <a href="{{ url_for('order.details', order_id=order.id) }}"
                       class="btn btn-sm btn-action-details mx-1" title="Ver Detalhes">
-                      📄
+                      <i class="fa-solid fa-file-lines"></i>
                     </a>
                     <a href="{{ url_for('order.edit_order', order_id=order.id) }}"
                       class="btn btn-sm btn-action-edit mx-1" title="Editar">
-                      ✏️
+                      <i class="fa-solid fa-pen"></i>
                     </a>
                     <form action="{{ url_for('order.delete_order', order_id=order.id) }}" method="post" class="d-inline"
                       onsubmit="return confirm('Tem certeza que deseja excluir este pedido?');">
                       <button type="submit" class="btn btn-sm btn-action-delete mx-1" title="Excluir">
-                        🗑️
+                        <i class="fa-solid fa-trash"></i>
                       </button>
                     </form>
                   </div>

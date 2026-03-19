@@ -1,7 +1,8 @@
 import json
 from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify, Response
 from app.models import get_db
-from app.utils import safe_int, safe_float, validate_amount, validate_date, soft_delete_order
+from app.utils import safe_int, safe_float, validate_amount, validate_date
+from app.services import order_service
 
 order_bp = Blueprint('order', __name__)
 
@@ -71,11 +72,7 @@ def new_order():
                 request.form.get('nome_doutor_otica','').strip(),
                 request.form.get('endereco','').strip()
             )
-            db.execute('''INSERT INTO orders (
-                os_number, client_name, phone, purchase_type, store, lab, payment_status, payment_method, installments, lab_paid, exam_date, delivery_date,
-                cpf, receita_fora, nome_doutor_fora, valor_pago, entrada, valor_retirada, nome_doutor_otica, endereco
-            ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)''', data)
-            db.commit()
+            order_service.create_order(db, data)
             flash('Ordem criada com sucesso.', 'success')
             return redirect(url_for('main.index'))
         except Exception as e:
@@ -87,44 +84,48 @@ def new_order():
 @order_bp.route('/edit/<int:order_id>', methods=['GET','POST'])
 def edit_order(order_id):
     db = get_db()
-    order = db.execute('SELECT * FROM orders WHERE id = ?', (order_id,)).fetchone()
+    order = order_service.get_order_by_id(db, order_id)
     if not order:
         flash('Ordem não encontrada.', 'danger')
         return redirect(url_for('main.index'))
     if request.method == 'POST':
-        receita_fora = 1 if request.form.get('receita_fora') == 'on' else 0
-        pagamento_retirada = 1 if request.form.get('pagamento_retirada') == 'on' else 0
-        valor_retirada = safe_float(request.form.get('valor_retirada')) if pagamento_retirada else 0.0
-        db.execute('''UPDATE orders SET
-            os_number=?, client_name=?, phone=?, purchase_type=?, store=?, lab=?, payment_status=?, payment_method=?, installments=?, lab_paid=?, exam_date=?, delivery_date=?,
-            cpf=?, receita_fora=?, nome_doutor_fora=?, valor_pago=?, entrada=?, valor_retirada=?, nome_doutor_otica=?, endereco=?
-            WHERE id=?''', (
-            request.form.get('os_number',''),
-            request.form.get('client_name',''),
-            request.form.get('phone',''),
-            request.form.get('purchase_type',''),
-            request.form.get('store',''),
-            request.form.get('lab',''),
-            request.form.get('payment_status',''),
-            request.form.get('payment_method',''),
-            safe_int(request.form.get('installments','0')),
-            1 if request.form.get('lab_paid') == 'on' else 0,
-            request.form.get('exam_date',''),
-            request.form.get('delivery_date',''),
-            request.form.get('cpf',''),
-            receita_fora,
-            request.form.get('nome_doutor_fora',''),
-            safe_float(request.form.get('valor_pago')),
-            safe_float(request.form.get('entrada')),
-            valor_retirada,
-            request.form.get('nome_doutor_otica',''),
-            request.form.get('endereco',''),
-            order_id
-        ))
-        db.commit()
-        flash('Ordem atualizada com sucesso.', 'success')
+        try:
+            receita_fora = 1 if request.form.get('receita_fora') == 'on' else 0
+            pagamento_retirada = 1 if request.form.get('pagamento_retirada') == 'on' else 0
+            valor_retirada = safe_float(request.form.get('valor_retirada')) if pagamento_retirada else 0.0
+            
+            # Use safe variables for safe execution
+            q_installments = safe_int(request.form.get('installments','0'))
+            q_pago = safe_float(request.form.get('valor_pago'))
+            q_entrada = safe_float(request.form.get('entrada'))
+            data = (
+                request.form.get('os_number',''),
+                request.form.get('client_name',''),
+                request.form.get('phone',''),
+                request.form.get('purchase_type',''),
+                request.form.get('store',''),
+                request.form.get('lab',''),
+                request.form.get('payment_status',''),
+                request.form.get('payment_method',''),
+                q_installments,
+                1 if request.form.get('lab_paid') == 'on' else 0,
+                request.form.get('exam_date',''),
+                request.form.get('delivery_date',''),
+                request.form.get('cpf',''),
+                receita_fora,
+                request.form.get('nome_doutor_fora',''),
+                q_pago,
+                q_entrada,
+                valor_retirada,
+                request.form.get('nome_doutor_otica',''),
+                request.form.get('endereco','')
+            )
+            order_service.update_order(db, order_id, data)
+            flash('Ordem atualizada com sucesso.', 'success')
+        except Exception as e:
+            flash(f'Erro ao atualizar ordem: {str(e)}', 'danger')
         return redirect(url_for('order.edit_order', order_id=order_id))
-    graus = db.execute('SELECT * FROM graus WHERE order_id = ?', (order_id,)).fetchall()
+    graus = order_service.get_graus_for_order(db, order_id)
     return render_template('form_full.html', action="Editar", order=order, graus=graus)
 
 @order_bp.route('/delete/<int:order_id>', methods=['POST'])
@@ -132,13 +133,13 @@ def delete_order(order_id):
     db = get_db()
     
     # Verificar se a ordem existe
-    order = db.execute('SELECT * FROM orders WHERE id = ? AND deleted_at IS NULL', (order_id,)).fetchone()
+    order = order_service.get_order_by_id(db, order_id)
     if not order:
         flash('Ordem não encontrada.', 'danger')
         return redirect(url_for('main.index'))
     
     # Usar soft-delete
-    if soft_delete_order(db, order_id):
+    if order_service.soft_delete_order(db, order_id):
         flash('Ordem excluída com sucesso.', 'success')
     else:
         flash('Erro ao excluir ordem.', 'danger')
@@ -149,27 +150,29 @@ def delete_order(order_id):
 @order_bp.route('/order/<int:order_id>/grau/new', methods=['POST'])
 def new_grau(order_id):
     db = get_db()
-    db.execute('''INSERT INTO graus (order_id, lens_for, eye, esf, cil, eixo, dnp, indice, lens_type, adicao)
-                  VALUES (?,?,?,?,?,?,?,?,?,?)''', (
-        order_id,
-        request.form.get('lens_for',''),
-        request.form.get('eye',''),
-        request.form.get('esf',''),
-        request.form.get('cil',''),
-        request.form.get('eixo',''),
-        request.form.get('dnp',''),
-        request.form.get('indice',''),
-        request.form.get('lens_type',''),
-        request.form.get('adicao','')
-    ))
-    db.commit()
-    flash('Grau adicionado.', 'success')
+    try:
+        data = (
+            order_id,
+            request.form.get('lens_for',''),
+            request.form.get('eye',''),
+            request.form.get('esf',''),
+            request.form.get('cil',''),
+            request.form.get('eixo',''),
+            request.form.get('dnp',''),
+            request.form.get('indice',''),
+            request.form.get('lens_type',''),
+            request.form.get('adicao','')
+        )
+        order_service.add_grau(db, data)
+        flash('Grau adicionado.', 'success')
+    except Exception as e:
+        flash(f'Erro ao adicionar grau: {str(e)}', 'danger')
     return redirect(url_for('order.edit_order', order_id=order_id))
 
 @order_bp.route('/order/<int:order_id>/grau/json/<int:grau_id>')
 def grau_json(order_id, grau_id):
     db = get_db()
-    grau = db.execute('SELECT * FROM graus WHERE id = ? AND order_id = ?', (grau_id, order_id)).fetchone()
+    grau = order_service.get_grau_by_id(db, order_id, grau_id)
     if not grau:
         return jsonify({'error': 'not found'}), 404
     return jsonify({k: grau[k] for k in grau.keys()})
@@ -177,56 +180,49 @@ def grau_json(order_id, grau_id):
 @order_bp.route('/order/<int:order_id>/grau/edit/<int:grau_id>', methods=['POST'])
 def edit_grau(order_id, grau_id):
     db = get_db()
-    grau = db.execute('SELECT * FROM graus WHERE id = ? AND order_id = ?', (grau_id, order_id)).fetchone()
+    grau = order_service.get_grau_by_id(db, order_id, grau_id)
     if not grau:
         flash('Grau não encontrado.', 'danger')
         return redirect(url_for('order.edit_order', order_id=order_id))
-    db.execute('''UPDATE graus SET lens_for=?, eye=?, esf=?, cil=?, eixo=?, dnp=?, indice=?, lens_type=?, adicao=?
-                  WHERE id=?''', (
-        request.form.get('lens_for',''),
-        request.form.get('eye',''),
-        request.form.get('esf',''),
-        request.form.get('cil',''),
-        request.form.get('eixo',''),
-        request.form.get('dnp',''),
-        request.form.get('indice',''),
-        request.form.get('lens_type',''),
-        request.form.get('adicao',''),
-        grau_id
-    ))
-    db.commit()
-    flash('Grau atualizado.', 'success')
+    try:
+        data = (
+            request.form.get('lens_for',''),
+            request.form.get('eye',''),
+            request.form.get('esf',''),
+            request.form.get('cil',''),
+            request.form.get('eixo',''),
+            request.form.get('dnp',''),
+            request.form.get('indice',''),
+            request.form.get('lens_type',''),
+            request.form.get('adicao','')
+        )
+        order_service.update_grau(db, grau_id, data)
+        flash('Grau atualizado.', 'success')
+    except Exception as e:
+        flash(f'Erro ao atualizar grau: {str(e)}', 'danger')
     return redirect(url_for('order.edit_order', order_id=order_id))
 
 @order_bp.route('/order/<int:order_id>/grau/delete/<int:grau_id>', methods=['POST'])
 def delete_grau(order_id, grau_id):
     db = get_db()
-    db.execute('DELETE FROM graus WHERE id = ? AND order_id = ?', (grau_id, order_id))
-    db.commit()
+    order_service.delete_grau(db, order_id, grau_id)
     flash('Grau excluído.', 'success')
     return redirect(url_for('order.edit_order', order_id=order_id))
 
 @order_bp.route('/details/<int:order_id>')
 def details(order_id):
     db = get_db()
-    order = db.execute('SELECT * FROM orders WHERE id = ?', (order_id,)).fetchone()
+    order = order_service.get_order_by_id(db, order_id)
     if not order:
         flash('Ordem não encontrada.', 'danger')
         return redirect(url_for('main.index'))
-    graus = db.execute('SELECT * FROM graus WHERE order_id = ?', (order_id,)).fetchall()
+    graus = order_service.get_graus_for_order(db, order_id)
     
     # Get partial payments
-    partial_payments = db.execute(
-        'SELECT * FROM partial_payments WHERE order_id = ? ORDER BY payment_date DESC',
-        (order_id,)
-    ).fetchall()
+    partial_payments = order_service.get_partial_payments(db, order_id)
     
     # Calculate total paid
-    total_paid_result = db.execute(
-        'SELECT COALESCE(SUM(amount), 0) as total FROM partial_payments WHERE order_id = ?',
-        (order_id,)
-    ).fetchone()
-    total_paid = total_paid_result['total'] if total_paid_result else 0
+    total_paid = order_service.get_total_paid(db, order_id)
     
     return render_template('details.html', order=order, graus=graus, 
                          partial_payments=partial_payments, total_paid=total_paid)
@@ -234,12 +230,12 @@ def details(order_id):
 @order_bp.route('/details/<int:order_id>/download')
 def download_order(order_id):
     db = get_db()
-    order = db.execute('SELECT * FROM orders WHERE id = ?', (order_id,)).fetchone()
+    order = order_service.get_order_by_id(db, order_id)
     if not order:
         flash('Ordem não encontrada.', 'danger')
         return redirect(url_for('main.index'))
     
-    graus = db.execute('SELECT * FROM graus WHERE order_id = ?', (order_id,)).fetchall()
+    graus = order_service.get_graus_for_order(db, order_id)
     order_dict = {k: order[k] for k in order.keys()}
     graus_list = [{k: g[k] for k in g.keys()} for g in graus]
     payload = {'order': order_dict, 'graus': graus_list}

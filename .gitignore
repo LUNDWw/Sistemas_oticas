@@ -32,3 +32,9 @@ Thumbs.db
 # Temporary files
 *.tmp
 *.bak
+
+# Python builds
+dist/
+build/
+__pycache__/
+*.exe

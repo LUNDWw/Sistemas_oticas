@@ -1,13 +1,11 @@
-import os
-import sys
 import logging
 import mimetypes
 from flask import Flask
 
 def create_app():
     from app.config import (
-        BASE_DIR, TEMPLATE_DIR, STATIC_DIR, DB_PATH,
-        SECRET_KEY, LOG_FILE, LOG_LEVEL
+        TEMPLATE_DIR, STATIC_DIR, SECRET_KEY, LOG_FILE,
+        LOG_LEVEL
     )
     
     mimetypes.add_type('text/css', '.css')
@@ -21,6 +19,9 @@ def create_app():
     )
     
     app.secret_key = SECRET_KEY
+    
+    # Inject a dummy csrf_token to prevent Jinja2 UndefinedError in templates
+    app.jinja_env.globals['csrf_token'] = lambda: ""
     
     logging.basicConfig(
         filename=LOG_FILE,

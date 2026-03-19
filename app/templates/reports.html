@@ -21,23 +21,23 @@
 
         <div class="row justify-content-center">
             <div class="col-md-8">
-                <div class="card">
-                    <div class="card-header">
-                        Configurar Relatório
+                <div class="card shadow-sm border-0 mt-4">
+                    <div class="card-header bg-transparent border-bottom-0 pt-4 pb-0">
+                        <h5 class="mb-0 text-primary fw-bold"><span class="fs-4 me-2"><i class="fa-solid fa-gear"></i></span> Configurar Relatório</h5>
                     </div>
-                    <div class="card-body">
+                    <div class="card-body p-4">
                         <form action="{{ url_for('report.export') }}" method="get" target="_blank">
-                            <div class="row g-3">
+                            <div class="row g-4 mb-4">
                                 <div class="col-md-6">
-                                    <label class="form-label">Data Início</label>
+                                    <label class="form-label fw-bold">Data Início</label>
                                     <input type="date" name="start_date" class="form-control">
                                 </div>
                                 <div class="col-md-6">
-                                    <label class="form-label">Data Fim</label>
+                                    <label class="form-label fw-bold">Data Fim</label>
                                     <input type="date" name="end_date" class="form-control">
                                 </div>
                                 <div class="col-md-12">
-                                    <label class="form-label">Status do Pagamento</label>
+                                    <label class="form-label fw-bold">Status do Pagamento</label>
                                     <select name="status" class="form-select">
                                         <option value="all">Todos</option>
                                         <option value="Pago">Pago</option>
@@ -45,24 +45,27 @@
                                     </select>
                                 </div>
                                 <div class="col-md-12">
-                                    <label class="form-label">Formato</label>
-                                    <div class="d-flex gap-3">
-                                        <div class="form-check">
-                                            <input class="form-check-input" type="radio" name="format" value="excel"
-                                                checked>
-                                            <label class="form-check-label">Excel (.xlsx)</label>
+                                    <label class="form-label fw-bold">Formato do Arquivo</label>
+                                    <div class="d-flex gap-4 mt-2">
+                                        <div class="form-check p-3 border rounded-3 text-center" style="cursor: pointer; min-width: 140px;">
+                                            <input class="form-check-input" type="radio" name="format" value="excel" checked id="formatExcel" style="margin-left: -5px;">
+                                            <label class="form-check-label d-block ms-2 fw-bold text-success" for="formatExcel" style="cursor: pointer;">
+                                                <i class="fas fa-file-excel fs-4 d-block mb-1"></i> Excel (.xlsx)
+                                            </label>
                                         </div>
-                                        <div class="form-check">
-                                            <input class="form-check-input" type="radio" name="format" value="pdf">
-                                            <label class="form-check-label">PDF (.pdf)</label>
+                                        <div class="form-check p-3 border rounded-3 text-center" style="cursor: pointer; min-width: 140px;">
+                                            <input class="form-check-input" type="radio" name="format" value="pdf" id="formatPdf" style="margin-left: -5px;">
+                                            <label class="form-check-label d-block ms-2 fw-bold text-danger" for="formatPdf" style="cursor: pointer;">
+                                                <i class="fas fa-file-pdf fs-4 d-block mb-1"></i> PDF (.pdf)
+                                            </label>
                                         </div>
                                     </div>
                                 </div>
                             </div>
-                            <hr>
-                            <div class="d-grid">
-                                <button type="submit" class="btn btn-primary">
-                                    Gerar Relatório
+                            
+                            <div class="d-grid mt-2">
+                                <button type="submit" class="btn btn-primary btn-lg rounded-pill shadow-sm">
+                                    Gerar Relatório <i class="fas fa-arrow-right ms-2"></i>
                                 </button>
                             </div>
                         </form>

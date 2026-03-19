@@ -19,11 +19,11 @@ def start_flask(open_browser=True):
         except Exception:
             pass
 
-        threading.Timer(1.5, lambda: webbrowser.open(f"http://{HOST}:{PORT}")).start()
+        threading.Timer(1.5, lambda: webbrowser.open(f"http://127.0.0.1:{PORT}")).start()
     else:
         debug_mode = DEBUG_MODE
         if open_browser:
-            threading.Timer(1.0, lambda: webbrowser.open(f"http://{HOST}:{PORT}")).start()
+            threading.Timer(1.0, lambda: webbrowser.open(f"http://127.0.0.1:{PORT}")).start()
 
     app.run(debug=debug_mode, host=HOST, port=PORT)
 

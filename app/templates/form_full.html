@@ -6,7 +6,7 @@
   <title>{{ action }} Pedido - Gestão Ótica</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link rel="stylesheet" href="{{ url_for('static', filename='bootstrap.min.css') }}">
-  <link rel="stylesheet" href="{{ url_for('static', filename='custom.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='custom.css') }}?v=2">
   <link rel="icon" href="{{ url_for('static', filename='image/logo.ico') }}">
 </head>
 
@@ -35,7 +35,7 @@
 
     <div class="row justify-content-center">
       <div class="col-lg-10">
-        <div class="card shadow-sm">
+        <div class="card p-2">
           <div class="card-header d-flex justify-content-between align-items-center">
             <h4 class="mb-0">{{ action }} Pedido</h4>
             <a href="{{ url_for('main.index') }}" class="btn btn-sm btn-outline-secondary">Voltar</a>
@@ -45,7 +45,10 @@
               <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
 
               <!-- Dados do Cliente -->
-              <h5 class="mb-3 text-primary border-bottom pb-2">Dados do Cliente</h5>
+              <div class="p-4 mb-4 rounded-4 bg-white shadow-sm" style="border: 1px solid rgba(0,0,0,0.05);">
+                <h5 class="mb-4 text-primary d-flex align-items-center">
+                  <span class="fs-4 me-2"><i class="fa-solid fa-user"></i></span> Dados do Cliente
+                </h5>
               <div class="row g-3 mb-4">
                 <div class="col-md-2">
                   <label for="os_number" class="form-label">Nº OS</label>
@@ -73,8 +76,13 @@
                 </div>
               </div>
 
+              </div>
+
               <!-- Detalhes da Compra -->
-              <h5 class="mb-3 text-primary border-bottom pb-2">Detalhes da Compra</h5>
+              <div class="p-4 mb-4 rounded-4 bg-white shadow-sm" style="border: 1px solid rgba(0,0,0,0.05);">
+                <h5 class="mb-4 text-primary d-flex align-items-center">
+                  <span class="fs-4 me-2"><i class="fa-solid fa-cart-shopping"></i></span> Detalhes da Compra
+                </h5>
               <div class="row g-3 mb-4">
                 <div class="col-md-4">
                   <label for="purchase_type" class="form-label">Tipo de Compra</label>
@@ -117,8 +125,13 @@
                 </div>
               </div>
 
+              </div>
+
               <!-- Receita -->
-              <h5 class="mb-3 text-primary border-bottom pb-2">Receita</h5>
+              <div class="p-4 mb-4 rounded-4 bg-white shadow-sm" style="border: 1px solid rgba(0,0,0,0.05);">
+                <h5 class="mb-4 text-primary d-flex align-items-center">
+                  <span class="fs-4 me-2"><i class="fa-solid fa-clipboard-list"></i></span> Receita
+                </h5>
               <div class="row g-3 mb-4">
                 <div class="col-md-12">
                   <div class="form-check form-switch">
@@ -139,8 +152,13 @@
                 </div>
               </div>
 
+              </div>
+
               <!-- Pagamento -->
-              <h5 class="mb-3 text-primary border-bottom pb-2">Pagamento</h5>
+              <div class="p-4 mb-4 rounded-4 bg-white shadow-sm" style="border: 1px solid rgba(0,0,0,0.05);">
+                <h5 class="mb-4 text-primary d-flex align-items-center">
+                  <span class="fs-4 me-2"><i class="fa-solid fa-credit-card"></i></span> Pagamento
+                </h5>
               <div class="row g-3 mb-4">
                 <div class="col-md-3">
                   <label for="payment_status" class="form-label">Status</label>
@@ -224,7 +242,7 @@
 
         <!-- Seção de Graus (Apenas Edição) -->
         {% if action == 'Editar' %}
-        <div class="card shadow-sm mt-4">
+        <div class="card p-2 mt-4">
           <div class="card-header d-flex justify-content-between align-items-center">
             <h5 class="mb-0">Graus / Lentes</h5>
             <button type="button" class="btn btn-sm btn-outline-primary" data-bs-toggle="modal"

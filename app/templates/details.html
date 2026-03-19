@@ -13,7 +13,7 @@
 <body class="bg-light">
   <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
     <div class="container-fluid">
-      <a class="navbar-brand" href="/">🕶️Ótica</a>
+      <a class="navbar-brand" href="/"><i class="fa-solid fa-glasses me-2"></i>Ótica</a>
     </div>
   </nav>
 
@@ -32,151 +32,230 @@
   {% endwith %}
 
   <main class="container my-4">
-    <div class="d-flex justify-content-between align-items-center mb-3">
-      <h2 class="text-primary">📋 Detalhes da OS #{{ order.os_number }}</h2>
-      <div>
-        <button class="btn btn-secondary btn-sm me-2" onclick="window.print()">🖨️ Imprimir</button>
-        <div class="btn-group">
-          <button type="button" class="btn btn-light btn-sm dropdown-toggle" data-bs-toggle="dropdown"
-            aria-expanded="false">
-            💾 Baixar
-          </button>
-          <ul class="dropdown-menu dropdown-menu-end">
-            <li><a class="dropdown-item"
-                href="{{ url_for('order.download_order', order_id=order.id, format='json') }}">JSON</a>
-            </li>
-            <li><a class="dropdown-item"
-                href="{{ url_for('order.download_order', order_id=order.id, format='txt') }}">TXT</a>
-            </li>
-          </ul>
+    <!-- Hero Header -->
+    <div class="card p-2 mb-4 bg-white">
+      <div class="card-body p-4 d-flex flex-wrap justify-content-between align-items-center gap-3">
+        <div>
+          <h2 class="text-primary mb-1 fw-bold"><i class="fa-solid fa-clipboard-list me-2"></i>OS #{{ order.os_number }}</h2>
+          <p class="text-muted mb-0">Visão geral e histórico do pedido</p>
         </div>
-      </div>
-    </div>
-
-    <div class="card shadow-sm mb-4">
-      <div class="card-header bg-primary text-white">
-        <h5 class="mb-0">👤 Informações do Cliente</h5>
-      </div>
-      <div class="card-body">
-        <div class="row">
-          <div class="col-md-6 mb-3">
-            <strong>Nome:</strong> {{ order.client_name }}
-          </div>
-          <div class="col-md-6 mb-3">
-            <strong>Telefone:</strong> {{ order.phone }}
-          </div>
-          <div class="col-md-6 mb-3">
-            <strong>CPF:</strong> {{ order.cpf or 'Não informado' }}
-          </div>
-          <div class="col-md-6 mb-3">
-            <strong>Endereço:</strong> {{ order.endereco or 'Não informado' }}
+        <div class="d-flex align-items-center">
+          <button class="btn btn-secondary me-2 shadow-sm px-4" onclick="window.print()"><i class="fa-solid fa-print me-2"></i> Imprimir</button>
+          <div class="btn-group shadow-sm">
+            <button type="button" class="btn btn-light dropdown-toggle px-4" data-bs-toggle="dropdown"
+              aria-expanded="false">
+              <i class="fa-solid fa-download me-2"></i> Baixar
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end border-0 shadow">
+              <li><a class="dropdown-item py-2"
+                  href="{{ url_for('order.download_order', order_id=order.id, format='json') }}"><i class="fa-solid fa-file-code me-2 text-primary"></i> JSON</a>
+              </li>
+              <li><a class="dropdown-item py-2"
+                  href="{{ url_for('order.download_order', order_id=order.id, format='txt') }}"><i class="fa-solid fa-file-lines me-2 text-secondary"></i> TXT</a>
+              </li>
+            </ul>
           </div>
         </div>
       </div>
     </div>
 
-    <div class="card shadow-sm mb-4">
-      <div class="card-header bg-success text-white">
-        <h5 class="mb-0">🛒 Informações da Compra</h5>
-      </div>
-      <div class="card-body">
-        <div class="row">
-          <div class="col-md-4 mb-3">
-            <strong>Tipo de Compra:</strong> {{ order.purchase_type or 'Não informado' }}
+    <div class="row g-4 mb-4">
+      <!-- Coluna Esquerda: Cliente e Compra -->
+      <div class="col-lg-6">
+        <div class="card h-100 p-2">
+          <div class="card-header bg-transparent border-bottom-0 pt-4 pb-0">
+            <h5 class="mb-0 text-primary fw-bold"><span class="fs-4 me-2"><i class="fa-solid fa-user"></i></span> Informações do Cliente</h5>
           </div>
-          <div class="col-md-4 mb-3">
-            <strong>Loja:</strong> {{ order.store or 'Não informado' }}
+          <div class="card-body">
+        <div class="row g-3">
+          <div class="col-md-6">
+            <div class="info-item">
+              <label>Nome</label>
+              <div class="value fw-bold">{{ order.client_name }}</div>
+            </div>
           </div>
-          <div class="col-md-4 mb-3">
-            <strong>Laboratório:</strong> {{ order.lab or 'Não informado' }}
+          <div class="col-md-6">
+            <div class="info-item">
+              <label>Telefone</label>
+              <div class="value">{{ order.phone }}</div>
+            </div>
           </div>
-          <div class="col-md-4 mb-3">
-            <strong>Status de Pagamento:</strong>
-            {% if 'Pago' in (order.payment_status or '') %}
-            <span class="badge bg-success">{{ order.payment_status }}</span>
-            {% else %}
-            <span class="badge bg-warning">{{ order.payment_status or 'Pendente' }}</span>
-            {% endif %}
+          <div class="col-md-6">
+            <div class="info-item">
+              <label>CPF</label>
+              <div class="value">{{ order.cpf or 'Não informado' }}</div>
+            </div>
           </div>
-          <div class="col-md-4 mb-3">
-            <strong>Método de Pagamento:</strong> {{ order.payment_method or 'Não informado' }}
+          <div class="col-md-6">
+            <div class="info-item">
+              <label>Endereço</label>
+              <div class="value">{{ order.endereco or 'Não informado' }}</div>
+            </div>
           </div>
-          <div class="col-md-4 mb-3">
-            <strong>Parcelas:</strong> {{ order.installments or '0' }}x
-          </div>
-          <div class="col-md-4 mb-3">
-            <strong>Valor Pago:</strong> R$ {{ "%.2f"|format(order.valor_pago or 0) }}
-          </div>
-          <div class="col-md-4 mb-3">
-            <strong>Entrada:</strong> R$ {{ "%.2f"|format(order.entrada or 0) }}
-          </div>
-          <div class="col-md-4 mb-3">
-            <strong>Valor na Retirada:</strong> R$ {{ "%.2f"|format(order.valor_retirada or 0) }}
-          </div>
-          <div class="col-md-6 mb-3">
-            <strong>Laboratório Pago:</strong>
-            {% if order.lab_paid %}
-            <span class="badge bg-success">✅ Sim</span>
-            {% else %}
-            <span class="badge bg-secondary">❌ Não</span>
-            {% endif %}
+        </div>
           </div>
         </div>
       </div>
-    </div>
 
-    <div class="card shadow-sm mb-4">
-      <div class="card-header bg-info text-white">
-        <h5 class="mb-0">📅 Datas</h5>
-      </div>
-      <div class="card-body">
-        <div class="row">
-          <div class="col-md-6 mb-3">
-            <strong>Data do Exame:</strong> {{ order.exam_date or 'Não informado' }}
+      <div class="col-lg-6">
+        <div class="card h-100 p-2">
+          <div class="card-header bg-transparent border-bottom-0 pt-4 pb-0">
+            <h5 class="mb-0 text-success fw-bold"><span class="fs-4 me-2"><i class="fa-solid fa-cart-shopping"></i></span> Informações da Compra</h5>
           </div>
-          <div class="col-md-6 mb-3">
-            <strong>Data de Entrega:</strong> {{ order.delivery_date or 'Não informado' }}
+          <div class="card-body">
+        <div class="row g-3">
+          <div class="col-md-4">
+            <div class="info-item">
+              <label>Tipo de Compra</label>
+              <div class="value">{{ order.purchase_type or 'Não informado' }}</div>
+            </div>
+          </div>
+          <div class="col-md-4">
+            <div class="info-item">
+              <label>Loja</label>
+              <div class="value">{{ order.store or 'Não informado' }}</div>
+            </div>
+          </div>
+          <div class="col-md-4">
+            <div class="info-item">
+              <label>Laboratório</label>
+              <div class="value">{{ order.lab or 'Não informado' }}</div>
+            </div>
+          </div>
+          <div class="col-md-4">
+            <div class="info-item">
+              <label>Status</label>
+              <div class="value mt-1">
+                {% if 'Pago' in (order.payment_status or '') %}
+                <span class="badge bg-success">{{ order.payment_status }}</span>
+                {% else %}
+                <span class="badge bg-warning">{{ order.payment_status or 'Pendente' }}</span>
+                {% endif %}
+              </div>
+            </div>
+          </div>
+          <div class="col-md-4">
+            <div class="info-item">
+              <label>Método</label>
+              <div class="value">{{ order.payment_method or 'Não informado' }}</div>
+            </div>
+          </div>
+          <div class="col-md-4">
+            <div class="info-item">
+              <label>Parcelas</label>
+              <div class="value">{{ order.installments or '0' }}x</div>
+            </div>
+          </div>
+          <div class="col-md-4">
+            <div class="info-item">
+              <label>Valor Pago</label>
+              <div class="value fw-bold text-success">R$ {{ "%.2f"|format(order.valor_pago or 0) }}</div>
+            </div>
+          </div>
+          <div class="col-md-4">
+            <div class="info-item">
+              <label>Entrada</label>
+              <div class="value fw-bold">R$ {{ "%.2f"|format(order.entrada or 0) }}</div>
+            </div>
+          </div>
+          <div class="col-md-4">
+            <div class="info-item">
+              <label>Na Retirada</label>
+              <div class="value fw-bold text-primary">R$ {{ "%.2f"|format(order.valor_retirada or 0) }}</div>
+            </div>
+          </div>
+          <div class="col-md-6 mt-3">
+            <div class="info-item bg-white border">
+              <label>Laboratório Pago?</label>
+              <div class="value mt-1">
+                {% if order.lab_paid %}
+                <span class="badge bg-success"><i class="fa-solid fa-check me-1"></i> Sim</span>
+                {% else %}
+                <span class="badge bg-secondary"><i class="fa-solid fa-xmark me-1"></i> Não</span>
+                {% endif %}
+              </div>
+            </div>
+          </div>
+        </div>
           </div>
         </div>
       </div>
-    </div>
+    </div> <!-- End Row 1 -->
 
-    <div class="card shadow-sm mb-4">
-      <div class="card-header bg-warning text-dark">
-        <h5 class="mb-0">👨‍⚕️ Informações do Exame</h5>
+    <div class="row g-4 mb-4">
+      <div class="col-lg-6">
+        <div class="card h-100 p-2">
+          <div class="card-header bg-transparent border-bottom-0 pt-4 pb-0">
+            <h5 class="mb-0 text-info fw-bold"><span class="fs-4 me-2"><i class="fa-regular fa-calendar"></i></span> Datas</h5>
+          </div>
+          <div class="card-body">
+        <div class="row g-3">
+          <div class="col-md-6">
+            <div class="info-item">
+              <label>Data do Exame</label>
+              <div class="value">{{ order.exam_date or 'Não informado' }}</div>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="info-item">
+              <label>Previsão de Entrega</label>
+              <div class="value fw-bold text-primary">{{ order.delivery_date or 'Não informado' }}</div>
+            </div>
+          </div>
+        </div>
+          </div>
+        </div>
       </div>
-      <div class="card-body">
-        <div class="row">
-          <div class="col-md-6 mb-3">
-            <strong>Receita de Fora:</strong>
-            {% if order.receita_fora %}
-            <span class="badge bg-primary">✅ Sim</span>
-            {% else %}
-            <span class="badge bg-secondary">❌ Não</span>
-            {% endif %}
+
+      <div class="col-lg-6">
+        <div class="card h-100 p-2">
+          <div class="card-header bg-transparent border-bottom-0 pt-4 pb-0">
+            <h5 class="mb-0 text-warning fw-bold"><span class="fs-4 me-2"><i class="fa-solid fa-user-doctor"></i></span> Informações do Exame</h5>
+          </div>
+          <div class="card-body">
+        <div class="row g-3">
+          <div class="col-md-6">
+            <div class="info-item">
+              <label>Receita de Fora?</label>
+              <div class="value mt-1">
+                {% if order.receita_fora %}
+                <span class="badge bg-primary"><i class="fa-solid fa-check me-1"></i> Sim</span>
+                {% else %}
+                <span class="badge bg-secondary"><i class="fa-solid fa-xmark me-1"></i> Não</span>
+                {% endif %}
+              </div>
+            </div>
           </div>
           {% if order.receita_fora %}
-          <div class="col-md-6 mb-3">
-            <strong>Nome do Doutor (Fora):</strong> {{ order.nome_doutor_fora or 'Não informado' }}
+          <div class="col-md-6">
+            <div class="info-item">
+              <label>Nome do Doutor (Fora)</label>
+              <div class="value">{{ order.nome_doutor_fora or 'Não informado' }}</div>
+            </div>
           </div>
           {% endif %}
           {% if order.nome_doutor_otica %}
-          <div class="col-md-6 mb-3">
-            <strong>Nome do Doutor (Ótica):</strong> {{ order.nome_doutor_otica }}
+          <div class="col-md-6">
+            <div class="info-item">
+              <label>Nome do Doutor (Ótica)</label>
+              <div class="value">{{ order.nome_doutor_otica }}</div>
+            </div>
           </div>
           {% endif %}
         </div>
+          </div>
+        </div>
       </div>
-    </div>
+    </div> <!-- End Row 2 -->
 
-    <div class="card shadow-sm mb-4">
-      <div class="card-header bg-dark text-white">
-        <h5 class="mb-0">👓 Graus</h5>
+    <div class="card p-2 mb-4">
+      <div class="card-header bg-transparent border-bottom-0 pt-4 pb-0">
+        <h5 class="mb-0 text-dark fw-bold"><span class="fs-4 me-2"><i class="fa-solid fa-glasses"></i></span> Graus</h5>
       </div>
       <div class="card-body">
         {% if graus and graus|length > 0 %}
         <div class="table-responsive">
-          <table class="table table-bordered table-hover">
+          <table class="table table-hover">
             <thead class="table-light">
               <tr>
                 <th>Para</th>
@@ -213,11 +292,11 @@
       </div>
     </div>
 
-    <div class="card shadow-sm mb-4">
-      <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
-        <h5 class="mb-0">💰 Pagamentos Parciais</h5>
-        <button class="btn btn-light btn-sm" data-bs-toggle="modal" data-bs-target="#partialPaymentModal">
-          ➕ Adicionar Pagamento
+    <div class="card p-2 mb-4">
+      <div class="card-header bg-transparent border-bottom-0 pt-4 pb-0 d-flex justify-content-between align-items-center">
+        <h5 class="mb-0 text-primary fw-bold"><span class="fs-4 me-2"><i class="fa-solid fa-sack-dollar"></i></span> Pagamentos Parciais</h5>
+        <button class="btn btn-outline-primary btn-sm rounded-pill px-3" data-bs-toggle="modal" data-bs-target="#partialPaymentModal">
+          <i class="fas fa-plus"></i> Adicionar Pagamento
         </button>
       </div>
       <div class="card-body">
@@ -288,19 +367,12 @@
                 <td class="text-end">
 
                   <button class="btn btn-sm btn-outline-primary me-1"
-
                     onclick="openEditPaymentModal('{{ payment.id }}', '{{ payment.amount }}', '{{ payment.payment_date }}', '{{ payment.payment_method }}', '{{ payment.notes }}')">
-
-                    ✏️
-
+                    <i class="fa-solid fa-pen"></i>
                   </button>
-
                   <button class="btn btn-sm btn-outline-danger"
-
                     onclick="openDeletePaymentModal('{{ payment.id }}', '{{ payment.amount }}')">
-
-                    🗑️
-
+                    <i class="fa-solid fa-trash"></i>
                   </button>
 
                 </td>
@@ -326,8 +398,8 @@
 
 
     <div class="mt-3">
-      <a href="{{ url_for('main.index') }}" class="btn btn-secondary">⬅️ Voltar</a>
-      <a href="{{ url_for('order.edit_order', order_id=order.id) }}" class="btn btn-primary">✏️ Editar</a>
+      <a href="{{ url_for('main.index') }}" class="btn btn-secondary"><i class="fa-solid fa-arrow-left me-1"></i> Voltar</a>
+      <a href="{{ url_for('order.edit_order', order_id=order.id) }}" class="btn btn-primary"><i class="fa-solid fa-pen me-1"></i> Editar</a>
     </div>
   </main>
 

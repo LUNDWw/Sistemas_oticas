@@ -188,6 +188,13 @@ def delete_partial_payment(payment_id):
     db.commit()
 
 
+def delete_movement(movement_id):
+    """Delete an independent cash flow movement"""
+    db = get_db()
+    db.execute("DELETE FROM cash_flow WHERE id = ?", (movement_id,))
+    db.commit()
+
+
 def get_order_balance(order_id):
     """Get payment balance for a specific order"""
     db = get_db()
@@ -244,7 +251,7 @@ def get_summary(start_date=None, end_date=None):
         params.append(end_date)
     
     # Build WHERE clause for date filters (if any)
-    date_where = " WHERE " + " AND ".join(conditions) if conditions else ""
+    " WHERE " + " AND ".join(conditions) if conditions else ""
     
     # Get entries (with type filter)
     entries_conditions = conditions.copy()

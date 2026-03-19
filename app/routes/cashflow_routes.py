@@ -5,7 +5,7 @@ Handles routes for cash flow management
 from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify
 from app.services import cashflow_service
 from app.utils import validate_amount, validate_date, is_safe_redirect
-from datetime import datetime, timedelta
+from datetime import datetime
 
 cashflow_bp = Blueprint('cashflow', __name__, url_prefix='/cashflow')
 
@@ -166,6 +166,18 @@ def edit_movement(movement_id):
         flash('Movimentação atualizada com sucesso!', 'success')
     except Exception as e:
         flash(f'Erro ao atualizar movimentação: {str(e)}', 'error')
+    
+    return redirect(url_for('cashflow.index'))
+
+
+@cashflow_bp.route('/delete/<int:movement_id>', methods=['POST'])
+def delete_movement(movement_id):
+    """Delete a general cash flow movement"""
+    try:
+        cashflow_service.delete_movement(movement_id)
+        flash('Movimentação excluída com sucesso!', 'success')
+    except Exception as e:
+        flash(f'Erro ao excluir movimentação: {str(e)}', 'error')
     
     return redirect(url_for('cashflow.index'))
 
